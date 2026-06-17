@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { db, auth } from '../firebase';
+import { db, auth } from '../../firebase';
 import { useRouter } from 'expo-router';
 
 export default function Home() {
@@ -18,7 +18,6 @@ export default function Home() {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setGalleries(data);
     });
-aq
     return () => unsubscribe();
   }, []);
 

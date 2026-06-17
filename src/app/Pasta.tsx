@@ -264,7 +264,7 @@ export default function Folder() {
           <Text style={styles.documentTypeLabel}>Documento</Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#a855f7" /></View>;
