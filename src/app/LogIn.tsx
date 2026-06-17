@@ -1,80 +1,49 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import React from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../hooks/useAuth';
 
 export default function LogIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  
   const router = useRouter();
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Erro", "Preencha todos os campos.");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/Home'); // Redireciona para Home após o login
-    } catch (error: any) {
-      Alert.alert("Erro de Autenticação", "Credenciais inválidas.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, password, setPassword, loading, handleLogin } = useAuth();
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Donghua Tracker</Text>
-        <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>Entrar</Text>
+      
+      <TextInput
+        style={styles.input}
+        placeholder="E-mail"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Senha"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          placeholderTextColor="#9ca3af"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#9ca3af"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Fazer Login</Text>}
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.mainButton} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.mainButtonText}>Entrar</Text>}
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.push('/SignUp')} style={styles.switchButton}>
-          <Text style={styles.switchButtonText}>Não tem conta? Cadastre-se</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      <TouchableOpacity onPress={() => router.push('/SignUp')}>
+        <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#030712', justifyContent: 'center', padding: 24 },
-  header: { alignItems: 'center', marginBottom: 40 },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#a855f7', marginBottom: 8 },
-  subtitle: { color: '#9ca3af', fontSize: 16 },
-  form: { gap: 16 },
-  input: { backgroundColor: '#1f2937', color: '#fff', borderRadius: 16, padding: 16, fontSize: 16, borderWidth: 1, borderColor: '#374151' },
-  mainButton: { backgroundColor: '#9333ea', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
-  mainButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  switchButton: { padding: 16, alignItems: 'center' },
-  switchButtonText: { color: '#9ca3af', fontSize: 14 }
+  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#f5f5f5' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#333' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 15, marginBottom: 15, backgroundColor: '#fff', fontSize: 16 },
+  button: { backgroundColor: '#007bff', padding: 15, borderRadius: 8, alignItems: 'center', marginBottom: 15 },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  linkText: { color: '#007bff', textAlign: 'center', fontSize: 14, marginTop: 10 }
 });
