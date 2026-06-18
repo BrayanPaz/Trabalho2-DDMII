@@ -1,70 +1,89 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { auth } from '../../firebase';
-import { signOut } from 'firebase/auth';
-import { useFolders } from '../hooks/useFolders';
-
-const numColumns = 3;
-const screenWidth = Dimensions.get('window').width;
-const itemSize = (screenWidth - 40) / numColumns;
+import { useHome } from '../hooks/useHome';
+import { homeStyles } from '../styles/homeStyles';
 
 export default function Home() {
   const router = useRouter();
-  const { folders, createFolder } = useFolders();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [newFolderDesc, setNewFolderDesc] = useState('');
-
-  const handleLogout = () => {
-    signOut(auth).then(() => router.replace('/LogIn'));
-  };
-
-  const handleCreate = async () => {
-    const success = await createFolder(newFolderName, newFolderDesc);
-    if (success) {
-      setModalVisible(false);
-      setNewFolderName('');
-      setNewFolderDesc('');
-    }
-  };
+  const {
+    folders,
+    modalVisible,
+    setModalVisible,
+    newFolderName,
+    setNewFolderName,
+    newFolderDesc,
+    setNewFolderDesc,
+    handleLogout,
+    handleCreate,
+    resetModal
+  } = useHome();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Minhas Pastas</Text>
-        <TouchableOpacity onPress={handleLogout}><Text style={styles.logoutText}>Sair</Text></TouchableOpacity>
+    <View style={homeStyles.container}>
+      <View style={homeStyles.header}>
+        <Text style={homeStyles.title}>O Meu Espaço</Text>
+        <TouchableOpacity style={homeStyles.logoutBtn} onPress={handleLogout}>
+          <Text style={homeStyles.logoutText}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={folders}
-        numColumns={numColumns}
+        numColumns={3}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={homeStyles.list}
         renderItem={({ item }) => (
           <TouchableOpacity 
-            style={styles.folderItem}
+            style={homeStyles.folderItem}
+            activeOpacity={0.7}
             onPress={() => router.push({ pathname: '/Pasta', params: { id: item.id, name: item.name, desc: item.description } })}
           >
-            <View style={styles.folderIcon} />
-            <Text style={styles.folderName} numberOfLines={1}>{item.name}</Text>
+            <View style={homeStyles.folderIcon}>
+              <Text style={homeStyles.folderEmoji}>📁</Text>
+            </View>
+            <Text style={homeStyles.folderName} numberOfLines={2}>{item.name}</Text>
           </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <View style={homeStyles.emptyContainer}>
+            <Text style={homeStyles.emptyText}>Nenhuma pasta criada. Prima no + para começar!</Text>
+          </View>
+        }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
-        <Text style={styles.fabText}>+</Text>
+      <TouchableOpacity style={homeStyles.fab} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
+        <Text style={homeStyles.fabText}>+</Text>
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modalBg}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nova Pasta</Text>
-            <TextInput style={styles.input} placeholder="Nome (obrigatório)" value={newFolderName} onChangeText={setNewFolderName} />
-            <TextInput style={styles.input} placeholder="Descrição (opcional)" value={newFolderDesc} onChangeText={setNewFolderDesc} />
-            <View style={styles.modalRow}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}><Text style={styles.cancelText}>Cancelar</Text></TouchableOpacity>
-              <TouchableOpacity onPress={handleCreate}><Text style={styles.saveText}>Criar</Text></TouchableOpacity>
+        <View style={homeStyles.modalBg}>
+          <View style={homeStyles.modalContent}>
+            <Text style={homeStyles.modalTitle}>Nova Pasta</Text>
+            <Text style={homeStyles.modalSubtitle}>Organize os seus ficheiros facilmente.</Text>
+            
+            <TextInput 
+              style={homeStyles.input} 
+              placeholder="Nome (obrigatório)" 
+              placeholderTextColor="#94a3b8"
+              value={newFolderName} 
+              onChangeText={setNewFolderName} 
+            />
+            <TextInput 
+              style={[homeStyles.input, homeStyles.inputMultiline]} 
+              placeholder="Descrição (opcional)" 
+              placeholderTextColor="#94a3b8"
+              value={newFolderDesc} 
+              onChangeText={setNewFolderDesc} 
+              multiline
+            />
+            <View style={homeStyles.modalRow}>
+              <TouchableOpacity style={homeStyles.cancelBtn} onPress={resetModal}>
+                <Text style={homeStyles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={homeStyles.saveBtn} onPress={handleCreate}>
+                <Text style={homeStyles.saveText}>Criar Pasta</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -72,23 +91,3 @@ export default function Home() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 50, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: 'bold' },
-  logoutText: { color: 'red', fontSize: 16 },
-  list: { padding: 10 },
-  folderItem: { width: itemSize, height: itemSize, padding: 5, alignItems: 'center', justifyContent: 'center' },
-  folderIcon: { width: itemSize - 20, height: itemSize - 30, backgroundColor: '#ddd', borderRadius: 8 },
-  folderName: { marginTop: 5, fontSize: 12, textAlign: 'center' },
-  fab: { position: 'absolute', bottom: 30, right: 30, backgroundColor: '#007bff', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
-  fabText: { color: '#fff', fontSize: 30 },
-  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#fff', padding: 20, borderRadius: 10 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 10 },
-  modalRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 20, marginTop: 10 },
-  cancelText: { color: 'gray', fontSize: 16 },
-  saveText: { color: '#007bff', fontSize: 16, fontWeight: 'bold' }
-});

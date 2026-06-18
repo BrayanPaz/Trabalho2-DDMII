@@ -29,8 +29,6 @@ export const useFiles = (folderId: string) => {
   const uploadToImgbb = async (base64Image: string) => {
     try {
       const formData = new FormData();
-      // O "as any" contorna o erro de tipagem do TypeScript (ts2345), 
-      // pois o React Native FormData aceita strings base64 perfeitamente.
       formData.append('image', base64Image as any); 
       const apiKey = process.env.EXPO_PUBLIC_IMGBB_API_KEY;
       const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
