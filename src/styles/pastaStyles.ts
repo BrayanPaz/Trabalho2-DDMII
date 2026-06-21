@@ -55,6 +55,21 @@ export const pastaStyles = StyleSheet.create({
     paddingVertical: 20, 
     paddingHorizontal: 12 
   },
+  folderDateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 6
+  },
+  folderDateGray: {
+    color: '#94a3b8',
+    fontSize: 13
+  },
+  folderDateEditable: {
+    color: '#4f46e5',
+    fontSize: 13,
+    fontWeight: '700'
+  },
   descCard: { 
     backgroundColor: '#ffffff', 
     padding: 16, 
@@ -105,6 +120,21 @@ export const pastaStyles = StyleSheet.create({
     height: itemSize, 
     padding: 4, 
     margin: 4 
+  },
+  fileDateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 6
+  },
+  fileDateGray: {
+    color: '#94a3b8',
+    fontSize: 11
+  },
+  fileDateEditable: {
+    color: '#06b6d4',
+    fontSize: 11,
+    fontWeight: '700'
   },
   fileBox: { 
     flex: 1, 
@@ -343,6 +373,27 @@ export const pastaStyles = StyleSheet.create({
     marginBottom: 20, 
     fontSize: 15, 
     color: '#1e293b' 
+  },
+  fileModalDates: {
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    marginBottom: 8
+  },
+  fileUploadLabel: {
+    color: '#64748b',
+    fontSize: 12
+  },
+  fileUploadDate: {
+    color: '#94a3b8',
+    fontSize: 13,
+    marginTop: 4
+  },
+  fileEditableDateBtn: {
+    marginTop: 8
+  },
+  fileDateEditable: {
+    color: '#4f46e5',
+    fontWeight: '700'
   },
   saveBtnFull: { 
     backgroundColor: '#4f46e5', 
