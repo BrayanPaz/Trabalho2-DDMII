@@ -7,6 +7,8 @@ export interface Folder {
   id: string;
   name: string;
   description: string;
+  createdAt: any;
+  customDate: any;
 }
 
 export const useFolders = () => {
@@ -22,10 +24,9 @@ export const useFolders = () => {
     return () => unsub();
   }, []);
 
-  const createFolder = async (name: string, description: string) => {
+  const createFolder = async (name: string, description: string, customDate: Date) => {
     if (!auth.currentUser || !name.trim()) return false;
     
-    // Verificação de nome único
     const exists = folders.some(f => f.name.toLowerCase() === name.toLowerCase());
     if (exists) {
       Alert.alert('Erro', 'Já existe uma pasta com esse nome.');
@@ -33,10 +34,12 @@ export const useFolders = () => {
     }
 
     try {
+      const now = new Date();
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'folders'), {
         name,
         description,
-        createdAt: new Date()
+        createdAt: now,
+        customDate: customDate || now
       });
       return true;
     } catch (e) {
@@ -45,10 +48,12 @@ export const useFolders = () => {
     }
   };
 
-  const updateFolder = async (id: string, name: string, description: string) => {
+  const updateFolder = async (id: string, name: string, description: string, customDate?: Date) => {
     if (!auth.currentUser || !name.trim()) return;
     try {
-      await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', id), { name, description });
+      const payload: any = { name, description };
+      if (customDate) payload.customDate = customDate;
+      await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', id), payload);
     } catch (e) {
       console.error(e);
     }

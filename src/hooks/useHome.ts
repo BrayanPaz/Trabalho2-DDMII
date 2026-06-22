@@ -10,6 +10,8 @@ export const useHome = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDesc, setNewFolderDesc] = useState('');
+  const [newFolderDate, setNewFolderDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -21,11 +23,9 @@ export const useHome = () => {
   };
 
   const handleCreate = async () => {
-    const success = await createFolder(newFolderName, newFolderDesc);
+    const success = await createFolder(newFolderName, newFolderDesc, newFolderDate);
     if (success) {
-      setModalVisible(false);
-      setNewFolderName('');
-      setNewFolderDesc('');
+      resetModal();
     }
   };
 
@@ -33,6 +33,8 @@ export const useHome = () => {
     setModalVisible(false);
     setNewFolderName('');
     setNewFolderDesc('');
+    setNewFolderDate(new Date());
+    setShowDatePicker(false);
   };
 
   return {
@@ -43,6 +45,10 @@ export const useHome = () => {
     setNewFolderName,
     newFolderDesc,
     setNewFolderDesc,
+    newFolderDate,
+    setNewFolderDate,
+    showDatePicker,
+    setShowDatePicker,
     handleLogout,
     handleCreate,
     resetModal

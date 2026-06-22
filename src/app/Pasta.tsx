@@ -1,50 +1,31 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { usePasta } from '../hooks/usePasta';
 import { pastaStyles } from '../styles/pastaStyles';
+
+const formatTimestamp = (timestamp: any) => {
+  if (!timestamp) return '';
+  const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+};
 
 export default function Pasta() {
   const router = useRouter();
   const {
-    folderId,
-    folderName,
-    folderDesc,
-    files,
-    selectedFile,
-    setFolderName,
-    setFolderDesc,
-    setIsEditingDesc,
-    setDescExpanded,
-    setDeleteFolderModal,
-    setCreateModal,
-    setNewFileName,
-    setNewFileDesc,
-    setNewFileData,
-    setEditTitle,
-    setEditDesc,
-    setDeleteConfirmModal,
-    setSelectedFile,
-    isEditingDesc,
-    descExpanded,
-    deleteFolderModal,
-    createModal,
-    editTitle,
-    editDesc,
-    deleteConfirmModal,
-    newFileName,
-    newFileDesc,
-    newFileData,
-    handleSaveFolderName,
-    handleSaveFolderDesc,
-    confirmDeleteFolder,
-    pickImage,
-    pickDocument,
-    handleCreateFile,
-    openFileModal,
-    handleSaveFile,
-    confirmDeleteFile,
-    resetCreateModal
+    folderName, folderDesc, folderCreatedAt, folderCustomDate, files, selectedFile,
+    setFolderName, setFolderDesc, setIsEditingDesc, setDescExpanded,
+    setDeleteFolderModal, setCreateModal, setNewFileName, setNewFileDesc,
+    setEditTitle, setEditDesc, setDeleteConfirmModal, setSelectedFile,
+    isEditingDesc, descExpanded, deleteFolderModal, createModal,
+    editTitle, editDesc, deleteConfirmModal, newFileName, newFileDesc, newFileData,
+    showFolderDatePicker, setShowFolderDatePicker, handleFolderDateChange,
+    newFileDate, setNewFileDate, showNewFileDatePicker, setShowNewFileDatePicker,
+    editCustomDate, setEditCustomDate, showEditFileDatePicker, setShowEditFileDatePicker,
+    handleSaveFolderName, handleSaveFolderDesc, confirmDeleteFolder, pickImage, pickDocument,
+    handleCreateFile, openFileModal, handleSaveFile, confirmDeleteFile, resetCreateModal
   } = usePasta();
 
   return (
@@ -73,15 +54,28 @@ export default function Pasta() {
         contentContainerStyle={pastaStyles.list}
         ListHeaderComponent={
           <View style={pastaStyles.descSection}>
+            <View style={pastaStyles.folderDateContainer}>
+              <Text style={pastaStyles.folderDateGray}>Criado em: {formatTimestamp(folderCreatedAt)}</Text>
+              <TouchableOpacity onPress={() => setShowFolderDatePicker(true)}>
+                <Text style={pastaStyles.folderDateEditable}>Data: {formatTimestamp(folderCustomDate)} ✏️</Text>
+              </TouchableOpacity>
+            </View>
+
+            {showFolderDatePicker && (
+              <DateTimePicker
+                value={folderCustomDate} mode="date" display="default"
+                onChange={(event, date) => {
+                  setShowFolderDatePicker(false);
+                  if (date) handleFolderDateChange(date);
+                }}
+              />
+            )}
+
             {isEditingDesc ? (
               <TextInput 
-                style={pastaStyles.descInput} 
-                value={folderDesc} 
-                onChangeText={setFolderDesc} 
-                onBlur={handleSaveFolderDesc} 
-                autoFocus multiline 
-                placeholder="Introduza uma descrição..."
-                placeholderTextColor="#94a3b8"
+                style={pastaStyles.descInput} value={folderDesc} 
+                onChangeText={setFolderDesc} onBlur={handleSaveFolderDesc} 
+                autoFocus multiline placeholder="Introduza uma descrição..." placeholderTextColor="#94a3b8"
               />
             ) : (
               <TouchableOpacity activeOpacity={0.7} onPress={() => setIsEditingDesc(true)} style={pastaStyles.descCard}>
@@ -107,6 +101,10 @@ export default function Pasta() {
                  <Text style={pastaStyles.docName} numberOfLines={2}>{item.name}</Text>
                </View>
             )}
+            <View style={pastaStyles.dateRow}>
+              <Text style={pastaStyles.dateGray} adjustsFontSizeToFit minimumFontScale={0.5} numberOfLines={1}>{formatTimestamp(item.createdAt)}</Text>
+              <Text style={pastaStyles.dateVibrant} adjustsFontSizeToFit minimumFontScale={0.5} numberOfLines={1}>{formatTimestamp(item.customDate)}</Text>
+            </View>
           </TouchableOpacity>
         )}
       />
@@ -145,6 +143,20 @@ export default function Pasta() {
             <TextInput style={pastaStyles.input} placeholder="Nome do arquivo" placeholderTextColor="#94a3b8" value={newFileName} onChangeText={setNewFileName} />
             <TextInput style={[pastaStyles.input, pastaStyles.inputMultiline]} placeholder="Descrição (opcional)" placeholderTextColor="#94a3b8" value={newFileDesc} onChangeText={setNewFileDesc} multiline />
             
+            <TouchableOpacity style={pastaStyles.datePickerBtn} onPress={() => setShowNewFileDatePicker(true)}>
+              <Text style={pastaStyles.datePickerText}>Data: {newFileDate.toLocaleDateString('pt-BR')}</Text>
+            </TouchableOpacity>
+
+            {showNewFileDatePicker && (
+              <DateTimePicker
+                value={newFileDate} mode="date" display="default"
+                onChange={(event, date) => {
+                  setShowNewFileDatePicker(false);
+                  if (date) setNewFileDate(date);
+                }}
+              />
+            )}
+
             <View style={pastaStyles.modalRow}>
               <TouchableOpacity style={pastaStyles.cancelBtn} onPress={resetCreateModal}><Text style={pastaStyles.cancelText}>Cancelar</Text></TouchableOpacity>
               <TouchableOpacity style={pastaStyles.saveBtn} onPress={handleCreateFile}><Text style={pastaStyles.saveTextWhite}>Adicionar</Text></TouchableOpacity>
@@ -161,13 +173,7 @@ export default function Pasta() {
                 <Text style={pastaStyles.closeText}>✕</Text>
               </TouchableOpacity>
               
-              <TextInput 
-                style={pastaStyles.editTitleInput} 
-                value={editTitle} 
-                onChangeText={setEditTitle} 
-                placeholder="Título"
-                placeholderTextColor="#94a3b8"
-              />
+              <TextInput style={pastaStyles.editTitleInput} value={editTitle} onChangeText={setEditTitle} placeholder="Título" placeholderTextColor="#94a3b8"/>
               {editTitle.trim() === '' && <Text style={pastaStyles.errorText}>O título não pode ficar vazio.</Text>}
 
               <View style={pastaStyles.previewContainer}>
@@ -178,14 +184,21 @@ export default function Pasta() {
                 )}
               </View>
 
-              <TextInput 
-                style={pastaStyles.editDescInput} 
-                value={editDesc} 
-                onChangeText={setEditDesc} 
-                placeholder="Escreva uma descrição para este ficheiro..." 
-                placeholderTextColor="#94a3b8"
-                multiline
-              />
+              <TextInput style={pastaStyles.editDescInput} value={editDesc} onChangeText={setEditDesc} placeholder="Escreva uma descrição para este ficheiro..." placeholderTextColor="#94a3b8" multiline />
+
+              <TouchableOpacity style={pastaStyles.bottomDateEditableBtn} onPress={() => setShowEditFileDatePicker(true)}>
+                <Text style={pastaStyles.bottomDateEditableText}>Data: {editCustomDate.toLocaleDateString('pt-BR')} ✏️</Text>
+              </TouchableOpacity>
+
+              {showEditFileDatePicker && (
+                <DateTimePicker
+                  value={editCustomDate} mode="date" display="default"
+                  onChange={(event, date) => {
+                    setShowEditFileDatePicker(false);
+                    if (date) setEditCustomDate(date);
+                  }}
+                />
+              )}
 
               <TouchableOpacity style={[pastaStyles.saveBtnFull, editTitle.trim() === '' && pastaStyles.btnDisabled]} onPress={handleSaveFile} disabled={editTitle.trim() === ''}>
                 <Text style={pastaStyles.saveTextWhite}>Guardar Alterações</Text>
@@ -197,8 +210,7 @@ export default function Pasta() {
             </View>
           </View>
 
-          {/* OVERLAY DE EXCLUSÃO */}
-          { <View style={[StyleSheet.absoluteFill, pastaStyles.modalBg, { zIndex: 1000 }]}>
+          { deleteConfirmModal && <View style={[StyleSheet.absoluteFill, pastaStyles.modalBg, { zIndex: 1000 }]}>
               <View style={pastaStyles.modalContent}>
                 <Text style={pastaStyles.modalTitle}>Excluir Ficheiro</Text>
                 <Text style={pastaStyles.modalSubtitle}>Tem a certeza? Este ficheiro será apagado para sempre.</Text>

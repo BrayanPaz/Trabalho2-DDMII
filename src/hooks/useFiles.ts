@@ -9,6 +9,8 @@ export interface AppFile {
   description: string;
   url: string;
   type: 'image' | 'document';
+  createdAt: any;
+  customDate: any;
 }
 
 export const useFiles = (folderId: string) => {
@@ -43,7 +45,7 @@ export const useFiles = (folderId: string) => {
     }
   };
 
-  const createFile = async (name: string, description: string, base64Uri: string, type: 'image' | 'document') => {
+  const createFile = async (name: string, description: string, base64Uri: string, type: 'image' | 'document', customDate: Date) => {
     if (!auth.currentUser || !folderId || !name.trim()) return false;
     
     let url = base64Uri;
@@ -54,12 +56,14 @@ export const useFiles = (folderId: string) => {
     }
 
     try {
+      const now = new Date();
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files'), {
         name,
         description,
         url,
         type,
-        createdAt: new Date()
+        createdAt: now,
+        customDate: customDate || now
       });
       return true;
     } catch (e) {
@@ -67,9 +71,11 @@ export const useFiles = (folderId: string) => {
     }
   };
 
-  const updateFile = async (id: string, name: string, description: string) => {
+  const updateFile = async (id: string, name: string, description: string, customDate?: Date) => {
     if (!auth.currentUser || !folderId || !name.trim()) return;
-    await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files', id), { name, description });
+    const payload: any = { name, description };
+    if (customDate) payload.customDate = customDate;
+    await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files', id), payload);
   };
 
   const deleteFile = async (id: string) => {
