@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useHome } from '../hooks/useHome';
-import { useFolders } from '../hooks/useFolders';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { homeStyles } from '../styles/homeStyles';
 
 export default function Home() {
@@ -20,26 +18,6 @@ export default function Home() {
     handleCreate,
     resetModal
   } = useHome();
-  const { updateFolder } = useFolders();
-
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
-
-  const openFolderDatePicker = (id: string) => {
-    setActiveFolderId(id);
-    setDatePickerVisible(true);
-  };
-
-  const onChangeDate = (_: any, selected?: Date) => {
-    setDatePickerVisible(Platform.OS === 'ios');
-    if (selected && activeFolderId) {
-      const folder = folders.find(f => f.id === activeFolderId);
-      if (folder) {
-        updateFolder(activeFolderId, folder.name, folder.description, selected);
-      }
-    }
-    setActiveFolderId(null);
-  };
 
   return (
     <View style={homeStyles.container}>
@@ -65,12 +43,6 @@ export default function Home() {
               <Text style={homeStyles.folderEmoji}>📁</Text>
             </View>
             <Text style={homeStyles.folderName} numberOfLines={2}>{item.name}</Text>
-            <View style={homeStyles.folderDateRow}>
-              <Text style={homeStyles.folderDateGray}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</Text>
-              <TouchableOpacity onPress={() => openFolderDatePicker(item.id)}>
-                <Text style={homeStyles.folderDateEditable}>{item.customDate ? new Date(item.customDate).toLocaleDateString() : 'Escolher data'}</Text>
-              </TouchableOpacity>
-            </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
@@ -116,16 +88,6 @@ export default function Home() {
           </View>
         </View>
       </Modal>
-
-      {datePickerVisible && (
-        <DateTimePicker
-          value={(folders.find(f => f.id === activeFolderId)?.customDate) ? new Date(folders.find(f => f.id === activeFolderId)!.customDate) : (folders.find(f => f.id === activeFolderId)?.createdAt ? new Date(folders.find(f => f.id === activeFolderId)!.createdAt) : new Date())}
-          mode="date"
-          display="default"
-          maximumDate={new Date(new Date().getFullYear() + 10, 11, 31)}
-          onChange={onChangeDate}
-        />
-      )}
     </View>
   );
 }

@@ -82,22 +82,6 @@ export const homeStyles = StyleSheet.create({
     textAlign: 'center', 
     lineHeight: 18 
   },
-  folderDateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 8,
-    paddingHorizontal: 6
-  },
-  folderDateGray: {
-    color: '#94a3b8',
-    fontSize: 12
-  },
-  folderDateEditable: {
-    color: '#4f46e5',
-    fontSize: 12,
-    fontWeight: '700'
-  },
   fab: { 
     position: 'absolute', 
     bottom: 30, 

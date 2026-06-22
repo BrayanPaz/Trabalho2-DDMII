@@ -11,7 +11,7 @@ export const usePasta = () => {
   const { id, name, desc } = useLocalSearchParams();
   const folderId = id as string;
 
-  const { updateFolder, deleteFolder, folders } = useFolders();
+  const { updateFolder, deleteFolder } = useFolders();
   const { files, createFile, updateFile, deleteFile } = useFiles(folderId);
 
   const [folderName, setFolderName] = useState(name as string);
@@ -82,21 +82,6 @@ export const usePasta = () => {
     setEditDesc(file.description);
   };
 
-  const setFolderCustomDate = (date: Date) => {
-    updateFolder(folderId, folderName, folderDesc, date);
-  };
-
-  const setFileCustomDate = async (fileId: string, date: Date) => {
-    // find file to get current name/desc
-    const target = files.find(f => f.id === fileId);
-    if (!target) return;
-    await updateFile(fileId, target.name, target.description, date);
-    // if currently selected file, refresh selected
-    if (selectedFile && selectedFile.id === fileId) {
-      setSelectedFile({ ...selectedFile, customDate: date });
-    }
-  };
-
   const handleSaveFile = async () => {
     if (!editTitle.trim() || !selectedFile) return;
     const fileId = selectedFile.id;
@@ -126,9 +111,6 @@ export const usePasta = () => {
     folderDesc,
     files,
     selectedFile,
-    // folder dates
-    folderCreatedAt: folders.find(f => f.id === folderId)?.createdAt,
-    folderCustomDate: folders.find(f => f.id === folderId)?.customDate,
     
     // Folder state setters
     setFolderName,
@@ -163,14 +145,12 @@ export const usePasta = () => {
     handleSaveFolderName,
     handleSaveFolderDesc,
     confirmDeleteFolder,
-    setFolderCustomDate,
     
     // File handlers
     pickImage,
     pickDocument,
     handleCreateFile,
     openFileModal,
-    setFileCustomDate,
     handleSaveFile,
     confirmDeleteFile,
     resetCreateModal

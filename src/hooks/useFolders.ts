@@ -7,8 +7,6 @@ export interface Folder {
   id: string;
   name: string;
   description: string;
-  createdAt?: Date | any;
-  customDate?: Date | any;
 }
 
 export const useFolders = () => {
@@ -18,12 +16,7 @@ export const useFolders = () => {
     if (!auth.currentUser) return;
     const q = query(collection(db, 'users', auth.currentUser.uid, 'folders'));
     const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => {
-        const raw = d.data() as any;
-        const createdAt = raw.createdAt && (raw.createdAt.toDate ? raw.createdAt.toDate() : new Date(raw.createdAt));
-        const customDate = raw.customDate && (raw.customDate.toDate ? raw.customDate.toDate() : new Date(raw.customDate));
-        return ({ id: d.id, ...raw, createdAt, customDate } as Folder);
-      });
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Folder));
       setFolders(data);
     });
     return () => unsub();
@@ -43,8 +36,7 @@ export const useFolders = () => {
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'folders'), {
         name,
         description,
-        createdAt: new Date(),
-        customDate: new Date()
+        createdAt: new Date()
       });
       return true;
     } catch (e) {
@@ -53,12 +45,10 @@ export const useFolders = () => {
     }
   };
 
-  const updateFolder = async (id: string, name: string, description: string, customDate?: Date) => {
+  const updateFolder = async (id: string, name: string, description: string) => {
     if (!auth.currentUser || !name.trim()) return;
     try {
-      const payload: any = { name, description };
-      if (customDate) payload.customDate = customDate;
-      await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', id), payload);
+      await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', id), { name, description });
     } catch (e) {
       console.error(e);
     }

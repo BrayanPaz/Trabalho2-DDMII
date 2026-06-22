@@ -9,8 +9,6 @@ export interface AppFile {
   description: string;
   url: string;
   type: 'image' | 'document';
-  createdAt?: Date | any;
-  customDate?: Date | any;
 }
 
 export const useFiles = (folderId: string) => {
@@ -20,12 +18,7 @@ export const useFiles = (folderId: string) => {
     if (!auth.currentUser || !folderId) return;
     const q = query(collection(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files'));
     const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => {
-        const raw = d.data() as any;
-        const createdAt = raw.createdAt && (raw.createdAt.toDate ? raw.createdAt.toDate() : new Date(raw.createdAt));
-        const customDate = raw.customDate && (raw.customDate.toDate ? raw.customDate.toDate() : new Date(raw.customDate));
-        return ({ id: d.id, ...raw, createdAt, customDate } as AppFile);
-      });
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppFile));
       setFiles(data);
     }, (error) => {
       console.error("Erro ao escutar ficheiros do Firestore:", error);
@@ -66,8 +59,7 @@ export const useFiles = (folderId: string) => {
         description,
         url,
         type,
-        createdAt: new Date(),
-        customDate: new Date()
+        createdAt: new Date()
       });
       return true;
     } catch (e) {
@@ -75,11 +67,9 @@ export const useFiles = (folderId: string) => {
     }
   };
 
-  const updateFile = async (id: string, name: string, description: string, customDate?: Date) => {
+  const updateFile = async (id: string, name: string, description: string) => {
     if (!auth.currentUser || !folderId || !name.trim()) return;
-    const payload: any = { name, description };
-    if (customDate) payload.customDate = customDate;
-    await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files', id), payload);
+    await updateDoc(doc(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files', id), { name, description });
   };
 
   const deleteFile = async (id: string) => {
