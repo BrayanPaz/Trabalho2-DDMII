@@ -67,7 +67,7 @@ export default function Home() {
         ListEmptyComponent={
           <View style={homeStyles.emptyContainer}>
             <Text style={homeStyles.emptyText}>
-              Nenhuma pasta criada. Prima no + para começar!
+              Nenhuma pasta criada. Clique no + para começar!
             </Text>
           </View>
         }

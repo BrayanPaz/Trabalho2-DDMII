@@ -12,7 +12,7 @@ export default function LogIn() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={loginStyles.container}>
       <View style={loginStyles.card}>
         <Text style={loginStyles.title}>Bem-vindo</Text>
-        <Text style={loginStyles.subtitle}>Aceda à sua galeria para continuar</Text>
+        <Text style={loginStyles.subtitle}>Logue para continuar e usar sua galeria</Text>
         
         <TextInput
           style={loginStyles.input}
