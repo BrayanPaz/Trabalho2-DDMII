@@ -28,7 +28,7 @@ export const useFiles = (folderId: string) => {
     return () => unsub();
   }, [folderId]);
 
-  // Upload de Imagens via ImgBB (Mantido intacto)
+  // Upload de Imagens via ImgBB
   const uploadToImgbb = async (base64Image: string) => {
     try {
       const formData = new FormData();
@@ -51,15 +51,13 @@ export const useFiles = (folderId: string) => {
     try {
       const formData = new FormData();
       
-      // Lida corretamente com os arquivos dependendo da plataforma (Web vs Mobile)
       if (Platform.OS === 'web' && webFile) {
-        formData.append('file', webFile); // Web: Usa o arquivo binário real da memória
+        formData.append('file', webFile);
       } else if (Platform.OS === 'web') {
         const response = await fetch(fileUri);
         const blob = await response.blob();
         formData.append('file', blob, fileName);
       } else {
-        // Mobile (Android/iOS): Formato nativo para evitar o bloqueio do fetch()
         formData.append('file', {
           uri: fileUri,
           name: fileName,
@@ -68,15 +66,15 @@ export const useFiles = (folderId: string) => {
       }
 
       formData.append('upload_preset', process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
-      formData.append('resource_type', 'raw'); 
-
+      
       const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
       if (!cloudName) {
         console.warn("Cloudinary Cloud Name não configurado no .env");
         return null;
       }
       
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, {
+      // Correção: Modificado de /raw/upload para /auto/upload para suporte abrangente de documentos no Cloudinary
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -107,7 +105,6 @@ export const useFiles = (folderId: string) => {
       if (!uploadedUrl) return false;
       url = uploadedUrl;
     } else if (type === 'document') {
-      // Usa o Cloudinary para upload de arquivos raw (documentos)
       const uploadedUrl = await uploadDocumentToCloudinary(fileDataUri, name, webFile);
       if (!uploadedUrl) {
         Alert.alert('Erro', 'Falha ao fazer upload do documento. Verifique as configurações do Cloudinary no .env.');

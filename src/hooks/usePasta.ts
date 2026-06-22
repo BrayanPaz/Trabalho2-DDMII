@@ -27,7 +27,6 @@ export const usePasta = () => {
   const [createModal, setCreateModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileDesc, setNewFileDesc] = useState('');
-  // O tipo 'file' opcional guarda o arquivo cru (File Object) quando estamos na Web
   const [newFileData, setNewFileData] = useState<{uri: string, type: 'image'|'document', file?: any}|null>(null);
   const [newFileDate, setNewFileDate] = useState(new Date());
   const [showNewFileDatePicker, setShowNewFileDatePicker] = useState(false);
@@ -72,13 +71,22 @@ export const usePasta = () => {
   };
 
   const pickDocument = async () => {
-    const result = await DocumentPicker.getDocumentAsync({});
-    if (!result.canceled) {
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true
+    });
+    
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
       setNewFileData({ 
-        uri: result.assets[0].uri, 
+        uri: asset.uri, 
         type: 'document',
-        file: result.assets[0].file // Aqui pegamos o arquivo nativo da web, crucial para upload no Cloudinary Web
+        file: asset.file 
       });
+      
+      // Correção: preenche o campo de nome automaticamente com o nome nativo do arquivo + extensão
+      if (!newFileName.trim()) {
+        setNewFileName(asset.name);
+      }
     }
   };
 
@@ -87,7 +95,6 @@ export const usePasta = () => {
       Alert.alert('Aviso', 'Nome e Arquivo são obrigatórios.');
       return;
     }
-    // Repassamos newFileData.file para que o useFiles.ts decida se usa a URI (Mobile) ou o File (Web)
     await createFile(newFileName, newFileDesc, newFileData.uri, newFileData.type, newFileDate, newFileData.file);
     resetCreateModal();
   };
