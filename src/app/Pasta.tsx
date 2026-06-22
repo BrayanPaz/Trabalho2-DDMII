@@ -1,4 +1,5 @@
 import React from 'react';
+import * as Linking from 'expo-linking';
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -184,8 +185,29 @@ export default function Pasta() {
                 )}
               </View>
 
-              <TextInput style={pastaStyles.editDescInput} value={editDesc} onChangeText={setEditDesc} placeholder="Escreva uma descrição para este ficheiro..." placeholderTextColor="#94a3b8" multiline />
-
+              <TextInput 
+                style={pastaStyles.editDescInput} 
+                value={editDesc} 
+                onChangeText={setEditDesc} 
+                placeholder="Escreva uma descrição para este ficheiro..." 
+                placeholderTextColor="#94a3b8"
+                multiline
+              />
+                            
+              {/* BOTÃO DE DOWNLOAD CONDICIONAL PARA DOCUMENTOS */}
+              {selectedFile.type === 'document' && (
+                <TouchableOpacity 
+                  style={pastaStyles.downloadBtn} 
+                  onPress={() => {
+                    if (selectedFile?.url) {
+                      Linking.openURL(selectedFile.url);
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={pastaStyles.downloadBtnText}>Abrir / Baixar Documento ⬇️</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={pastaStyles.bottomDateEditableBtn} onPress={() => setShowEditFileDatePicker(true)}>
                 <Text style={pastaStyles.bottomDateEditableText}>Data: {editCustomDate.toLocaleDateString('pt-BR')} ✏️</Text>
               </TouchableOpacity>

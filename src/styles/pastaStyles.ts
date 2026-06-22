@@ -96,5 +96,22 @@ export const pastaStyles = StyleSheet.create({
   editDescInput: { backgroundColor: '#f1f5f9', borderRadius: 16, padding: 16, minHeight: 100, textAlignVertical: 'top', marginBottom: 20, fontSize: 15, color: '#1e293b' },
   saveBtnFull: { backgroundColor: '#4f46e5', padding: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
   btnDisabled: { opacity: 0.5 },
-  deleteBtnFull: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 16, alignItems: 'center' }
+  deleteBtnFull: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 16, alignItems: 'center' },
+  downloadBtn: {
+    backgroundColor: '#10b981', // Verde esmeralda para indicar uma ação positiva de download
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3
+  },
+  downloadBtnText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });

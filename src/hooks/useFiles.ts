@@ -45,16 +45,51 @@ export const useFiles = (folderId: string) => {
     }
   };
 
+  const uploadDocumentToCloud = async (localUri: string, fileName: string) => {
+    try {
+      // Busca o blob real do arquivo (funciona tanto para caminhos locais de mobile quanto blobs de web)
+      const response = await fetch(localUri);
+      const blob = await response.blob();
+
+      const formData = new FormData();
+      formData.append('file', blob, fileName);
+
+      // Faz o upload para gerar um link público acessível de qualquer lugar
+      const res = await fetch('https://file.io', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        return data.link; // URL pública gerada
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao fazer upload do documento:', error);
+      return null;
+    }
+  };
+
   const createFile = async (name: string, description: string, base64Uri: string, type: 'image' | 'document', customDate: Date) => {
     if (!auth.currentUser || !folderId || !name.trim()) return false;
     
     let url = base64Uri;
+    
     if (type === 'image') {
       const uploadedUrl = await uploadToImgbb(base64Uri);
       if (!uploadedUrl) return false;
       url = uploadedUrl;
+    } else if (type === 'document') {
+      // Realiza o upload do documento e obtém a URL pública estável
+      const uploadedUrl = await uploadDocumentToCloud(base64Uri, name);
+      if (!uploadedUrl) {
+        Alert.alert('Erro', 'Não foi possível enviar o documento para o servidor.');
+        return false;
+      }
+      url = uploadedUrl;
     }
-
+  
     try {
       const now = new Date();
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files'), {
@@ -70,7 +105,6 @@ export const useFiles = (folderId: string) => {
       return false;
     }
   };
-
   const updateFile = async (id: string, name: string, description: string, customDate?: Date) => {
     if (!auth.currentUser || !folderId || !name.trim()) return;
     const payload: any = { name, description };
