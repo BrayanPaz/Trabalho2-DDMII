@@ -13,6 +13,11 @@ export interface Folder {
 
 export const useFolders = () => {
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [createModal, setCreateModal] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
+  const [newFileDesc, setNewFileDesc] = useState('');
+  const [newFileData, setNewFileData] = useState<{uri: string, type: 'image'|'document', file?: any}|null>(null);
+  const [newFileDate, setNewFileDate] = useState(new Date());
 
   useEffect(() => {
     if (!auth.currentUser) return;

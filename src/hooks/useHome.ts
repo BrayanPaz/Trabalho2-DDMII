@@ -7,9 +7,12 @@ import { useFolders } from './useFolders';
 export const useHome = () => {
   const router = useRouter();
   const { folders, createFolder } = useFolders();
+  
   const [modalVisible, setModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDesc, setNewFolderDesc] = useState('');
+  
+  // Novos estados para a data personalizada da pasta
   const [newFolderDate, setNewFolderDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -23,6 +26,7 @@ export const useHome = () => {
   };
 
   const handleCreate = async () => {
+    // Passa a data selecionada para a função de criação
     const success = await createFolder(newFolderName, newFolderDesc, newFolderDate);
     if (success) {
       resetModal();
@@ -33,7 +37,7 @@ export const useHome = () => {
     setModalVisible(false);
     setNewFolderName('');
     setNewFolderDesc('');
-    setNewFolderDate(new Date());
+    setNewFolderDate(new Date()); // Reseta para a data atual
     setShowDatePicker(false);
   };
 

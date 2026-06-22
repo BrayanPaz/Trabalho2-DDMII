@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useFolders } from './useFolders';
@@ -27,7 +27,8 @@ export const usePasta = () => {
   const [createModal, setCreateModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileDesc, setNewFileDesc] = useState('');
-  const [newFileData, setNewFileData] = useState<{uri: string, type: 'image'|'document'}|null>(null);
+  // O tipo 'file' opcional guarda o arquivo cru (File Object) quando estamos na Web
+  const [newFileData, setNewFileData] = useState<{uri: string, type: 'image'|'document', file?: any}|null>(null);
   const [newFileDate, setNewFileDate] = useState(new Date());
   const [showNewFileDatePicker, setShowNewFileDatePicker] = useState(false);
 
@@ -73,7 +74,11 @@ export const usePasta = () => {
   const pickDocument = async () => {
     const result = await DocumentPicker.getDocumentAsync({});
     if (!result.canceled) {
-      setNewFileData({ uri: result.assets[0].uri, type: 'document' });
+      setNewFileData({ 
+        uri: result.assets[0].uri, 
+        type: 'document',
+        file: result.assets[0].file // Aqui pegamos o arquivo nativo da web, crucial para upload no Cloudinary Web
+      });
     }
   };
 
@@ -82,7 +87,8 @@ export const usePasta = () => {
       Alert.alert('Aviso', 'Nome e Arquivo são obrigatórios.');
       return;
     }
-    await createFile(newFileName, newFileDesc, newFileData.uri, newFileData.type, newFileDate);
+    // Repassamos newFileData.file para que o useFiles.ts decida se usa a URI (Mobile) ou o File (Web)
+    await createFile(newFileName, newFileDesc, newFileData.uri, newFileData.type, newFileDate, newFileData.file);
     resetCreateModal();
   };
 

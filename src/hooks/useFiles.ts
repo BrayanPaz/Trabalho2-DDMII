@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 export interface AppFile {
   id: string;
@@ -28,6 +28,7 @@ export const useFiles = (folderId: string) => {
     return () => unsub();
   }, [folderId]);
 
+  // Upload de Imagens via ImgBB (Mantido intacto)
   const uploadToImgbb = async (base64Image: string) => {
     try {
       const formData = new FormData();
@@ -45,51 +46,76 @@ export const useFiles = (folderId: string) => {
     }
   };
 
-  const uploadDocumentToCloud = async (localUri: string, fileName: string) => {
+  // Upload de Documentos para o Cloudinary (100% Grátis)
+  const uploadDocumentToCloudinary = async (fileUri: string, fileName: string, webFile?: any) => {
     try {
-      // Busca o blob real do arquivo (funciona tanto para caminhos locais de mobile quanto blobs de web)
-      const response = await fetch(localUri);
-      const blob = await response.blob();
-
       const formData = new FormData();
-      formData.append('file', blob, fileName);
+      
+      // Lida corretamente com os arquivos dependendo da plataforma (Web vs Mobile)
+      if (Platform.OS === 'web' && webFile) {
+        formData.append('file', webFile); // Web: Usa o arquivo binário real da memória
+      } else if (Platform.OS === 'web') {
+        const response = await fetch(fileUri);
+        const blob = await response.blob();
+        formData.append('file', blob, fileName);
+      } else {
+        // Mobile (Android/iOS): Formato nativo para evitar o bloqueio do fetch()
+        formData.append('file', {
+          uri: fileUri,
+          name: fileName,
+          type: 'application/octet-stream'
+        } as any);
+      }
 
-      // Faz o upload para gerar um link público acessível de qualquer lugar
-      const res = await fetch('https://file.io', {
+      formData.append('upload_preset', process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+      formData.append('resource_type', 'raw'); 
+
+      const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      if (!cloudName) {
+        console.warn("Cloudinary Cloud Name não configurado no .env");
+        return null;
+      }
+      
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
       });
-
+      
       const data = await res.json();
-      if (data.success) {
-        return data.link; // URL pública gerada
+      if (data.secure_url) {
+        return data.secure_url; 
+      } else {
+         console.error("Cloudinary Error:", data);
+         return null;
       }
-      return null;
     } catch (error) {
-      console.error('Erro ao fazer upload do documento:', error);
+      console.error("Erro no upload para o Cloudinary:", error);
       return null;
     }
   };
 
-  const createFile = async (name: string, description: string, base64Uri: string, type: 'image' | 'document', customDate: Date) => {
+  const createFile = async (name: string, description: string, fileDataUri: string, type: 'image' | 'document', customDate: Date, webFile?: any) => {
     if (!auth.currentUser || !folderId || !name.trim()) return false;
     
-    let url = base64Uri;
+    let url = fileDataUri;
     
     if (type === 'image') {
-      const uploadedUrl = await uploadToImgbb(base64Uri);
+      const uploadedUrl = await uploadToImgbb(fileDataUri);
       if (!uploadedUrl) return false;
       url = uploadedUrl;
     } else if (type === 'document') {
-      // Realiza o upload do documento e obtém a URL pública estável
-      const uploadedUrl = await uploadDocumentToCloud(base64Uri, name);
+      // Usa o Cloudinary para upload de arquivos raw (documentos)
+      const uploadedUrl = await uploadDocumentToCloudinary(fileDataUri, name, webFile);
       if (!uploadedUrl) {
-        Alert.alert('Erro', 'Não foi possível enviar o documento para o servidor.');
+        Alert.alert('Erro', 'Falha ao fazer upload do documento. Verifique as configurações do Cloudinary no .env.');
         return false;
       }
       url = uploadedUrl;
     }
-  
+
     try {
       const now = new Date();
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'folders', folderId, 'files'), {
@@ -105,6 +131,7 @@ export const useFiles = (folderId: string) => {
       return false;
     }
   };
+
   const updateFile = async (id: string, name: string, description: string, customDate?: Date) => {
     if (!auth.currentUser || !folderId || !name.trim()) return;
     const payload: any = { name, description };
